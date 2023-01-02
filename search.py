@@ -48,6 +48,7 @@ class SemanticSearch:
 
 
     def tokenize_with_specb(self, texts, is_query):
+        """This function tokenizes the texts and adds special brackets"""
         # Tokenize without padding
         batch_tokens = self.tokenizer(texts, padding=False, truncation=True)   
         # Add special brackets & pay attention to them
@@ -65,6 +66,7 @@ class SemanticSearch:
         return batch_tokens
 
     def get_weightedmean_embedding(self, batch_tokens, model):
+        """This function computes the weighted mean embedding of the last hidden state"""
         # Get the embeddings
         with torch.no_grad():
             # Get hidden state of shape [bs, seq_len, hid_dim]
@@ -96,6 +98,7 @@ class SemanticSearch:
         return embeddings
 
     def encode(self, texts, is_query=False):
+        """This function encodes the texts into embeddings"""
         # Tokenize the texts
         batch_tokens = self.tokenize_with_specb(texts, is_query)
         # Get the weighted mean embeddings
@@ -103,52 +106,55 @@ class SemanticSearch:
         return embeddings
     
     def query(self, query, top_k=5):
+        """Shortcut function for encoding a query"""
         return self.encode(query, is_query=True)
 
-print("loading model...")
-model = SemanticSearch("sgpt-small")
 
-print("model loaded")
+if __name__ == "__main__":
+    print("loading model...")
+    model = SemanticSearch("sgpt-small")
 
-queries = [
-    "Which planet is 40 light years away from Earth?",
-]
+    print("model loaded")
 
-docs = [
-    "Neptune is the eighth and farthest-known Solar planet from the Sun. In the Solar System, it is the fourth-largest planet by diameter, the third-most-massive planet, and the densest giant planet. It is 17 times the mass of Earth, slightly more massive than its near-twin Uranus.",
-    "TRAPPIST-1d, also designated as 2MASS J23062928-0502285 d, is a small exoplanet (about 30% the mass of the earth), which orbits on the inner edge of the wearable zone of the ultracool dwarf star TRAPPIST-1 approximately 40 light-years (12.1 parsecs, or nearly 3.7336×1014 km) away from Earth in the constellation of Aquarius.",
-    "A harsh desert world orbiting twin suns in the galaxy’s Outer Rim, Tatooine is a lawless place ruled by Hutt gangsters. Many settlers scratch out a living on moisture farms, while spaceport cities such as Mos Eisley and Mos Espa serve as home base for smugglers, criminals, and other rogues.",
-] 
+    queries = [
+        "Which planet is 40 light years away from Earth?",
+    ]
 
-# Encode the queries and documents
+    docs = [
+        "Neptune is the eighth and farthest-known Solar planet from the Sun. In the Solar System, it is the fourth-largest planet by diameter, the third-most-massive planet, and the densest giant planet. It is 17 times the mass of Earth, slightly more massive than its near-twin Uranus.",
+        "TRAPPIST-1d, also designated as 2MASS J23062928-0502285 d, is a small exoplanet (about 30% the mass of the earth), which orbits on the inner edge of the wearable zone of the ultracool dwarf star TRAPPIST-1 approximately 40 light-years (12.1 parsecs, or nearly 3.7336×1014 km) away from Earth in the constellation of Aquarius.",
+        "A harsh desert world orbiting twin suns in the galaxy’s Outer Rim, Tatooine is a lawless place ruled by Hutt gangsters. Many settlers scratch out a living on moisture farms, while spaceport cities such as Mos Eisley and Mos Espa serve as home base for smugglers, criminals, and other rogues.",
+    ] 
 
-import time
+    # Encode the queries and documents
 
-start = time.time()
-doc_embeddings = model.encode(docs)
+    import time
 
-end = time.time()
-print("Time taken to encode the documents: ", end - start)
+    start = time.time()
+    doc_embeddings = model.encode(docs)
 
-# print the amount of queries per seconds
-print("Queries per second: ", len(docs) / (end - start))
+    end = time.time()
+    print("Time taken to encode the documents: ", end - start)
+
+    # print the amount of queries per seconds
+    print("Queries per second: ", len(docs) / (end - start))
 
 
 
-start = time.time()
-query_embeddings = model.query(queries)
+    start = time.time()
+    query_embeddings = model.query(queries)
 
-end = time.time()
-print("Time taken to encode the queries: ", end - start)
+    end = time.time()
+    print("Time taken to encode the queries: ", end - start)
 
-# print(query_embeddings)
+    # print(query_embeddings)
 
-# Calculate cosine similarities
-# Cosine similarities are in [-1, 1]. Higher means more similar
-cosine_sim_0_1 = 1 - cosine(query_embeddings[0], doc_embeddings[0])
-cosine_sim_0_2 = 1 - cosine(query_embeddings[0], doc_embeddings[1])
-cosine_sim_0_3 = 1 - cosine(query_embeddings[0], doc_embeddings[2])
+    # Calculate cosine similarities
+    # Cosine similarities are in [-1, 1]. Higher means more similar
+    cosine_sim_0_1 = 1 - cosine(query_embeddings[0], doc_embeddings[0])
+    cosine_sim_0_2 = 1 - cosine(query_embeddings[0], doc_embeddings[1])
+    cosine_sim_0_3 = 1 - cosine(query_embeddings[0], doc_embeddings[2])
 
-print("Cosine similarity between \"%s\" and \"%s\" is: %.3f" % (queries[0], docs[0][:20] + "...", cosine_sim_0_1))
-print("Cosine similarity between \"%s\" and \"%s\" is: %.3f" % (queries[0], docs[1][:20] + "...", cosine_sim_0_2))
-print("Cosine similarity between \"%s\" and \"%s\" is: %.3f" % (queries[0], docs[2][:20] + "...", cosine_sim_0_3))
+    print("Cosine similarity between \"%s\" and \"%s\" is: %.3f" % (queries[0], docs[0][:20] + "...", cosine_sim_0_1))
+    print("Cosine similarity between \"%s\" and \"%s\" is: %.3f" % (queries[0], docs[1][:20] + "...", cosine_sim_0_2))
+    print("Cosine similarity between \"%s\" and \"%s\" is: %.3f" % (queries[0], docs[2][:20] + "...", cosine_sim_0_3))
