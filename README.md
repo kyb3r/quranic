@@ -14,3 +14,8 @@ for verse in verses:
     print(f"Surah {verse.surah.name}\n  {verse}\n")
 ```
 
+## Installation
+```
+pip install git+https://github.com/kyb3r/quranic
+```
+
