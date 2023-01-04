@@ -4,9 +4,7 @@ import time
 
 corpus = SearchEngine("bukhari")
 
-queries = [
-    "adultery"
-]
+queries = ["adultery"]
 
 for query in queries:
     print("QUERY:", query)
@@ -15,7 +13,7 @@ for query in queries:
     for socre, hadith in results:
         print(hadith)
         print()
-    print('---------------------\n')
+    print("---------------------\n")
 
 while True:
     query = input("QUERY: ")
@@ -25,4 +23,4 @@ while True:
     for _, hadith in results:
         print(hadith)
         print()
-    print('---------------------\n')
+    print("---------------------\n")

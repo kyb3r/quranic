@@ -23,9 +23,9 @@ for query in queries:
         verse = result[1]
         print(f"Surah {verse.surah.name}\n  {verse}")
         print()
-    print('---------------------\n')
+    print("---------------------\n")
 
-print(time.time()-start)
+print(time.time() - start)
 
 
 while True:
@@ -35,6 +35,4 @@ while True:
     for _, verse in results:
         print(f"Surah {verse.surah.name}\n  {verse}")
         print()
-    print('---------------------\n')
-
-    
+    print("---------------------\n")

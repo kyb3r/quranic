@@ -7,8 +7,10 @@ from pathlib import Path
 
 DATA = Path(__file__).parent / "data"
 
+
 def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
 
 class SearchEngine:
     """This class is used to store a corpus of documents and perform semantic search on it."""
@@ -24,12 +26,12 @@ class SearchEngine:
         self.documents = self.book.documents
         self.doc_embeddings: list = []
         self.load_search_engine()
-    
+
     def load_search_engine(self, name="sgpt-small"):
         self.model = SemanticSearch(name)
         self.load_embeddings(DATA / f"{self.name}-embeddings")
         return self
-    
+
     @staticmethod
     def sim_matrix(a, b, eps=1e-8):
         """
@@ -42,15 +44,15 @@ class SearchEngine:
         return sim_mt
 
     @cache
-    def search(self, query: str, k: int=5):
+    def search(self, query: str, k: int = 5):
         """Search the corpus for the given query and return the top k results."""
-        
+
         query_embedding = self.model.encode([query], is_query=True).cpu()
         similarities = self.sim_matrix(self.doc_embeddings, query_embedding)
         zipped = list(zip(similarities.tolist(), self.documents))
 
         return sorted(zipped, key=lambda x: x[0], reverse=True)[:k]
-    
+
     def _deprecated_old_search(self, query: str, k: int = 5):
         """Search the corpus for the given query and return the top k results."""
         query_embedding = self.model.encode([query], is_query=True)[0].cpu()
@@ -61,7 +63,7 @@ class SearchEngine:
 
             score = 1 - cosine_similarity(query_embedding, doc_embedding.cpu())
             results.append((score, self.documents[i]))
-        
+
         sorted_results = sorted(results, key=lambda x: x[0])
 
         return sorted_results[:k]
@@ -70,13 +72,12 @@ class SearchEngine:
         """Generate embeddings for the documents and add them to the corpus."""
         embeddings = self.model.encode(documents, is_query=False)
         self.doc_embeddings.extend(embeddings)
-    
+
     def add_document(self, document):
         """Generate embeddings for the documents and add them to the corpus."""
         embedding = self.model.encode([document], is_query=False)[0]
         self.doc_embeddings.append(embedding)
 
-    
     def save_embeddings(self, path: str):
         """Save precomputed embeddings to a file."""
 
@@ -86,28 +87,29 @@ class SearchEngine:
 
         with open(path, "wb") as f:
             pickle.dump(self.doc_embeddings, f)
-    
+
     def load_embeddings(self, path: str):
         """Load precomputed embeddings from a file."""
         with open(path, "rb") as f:
             x = pickle.load(f)
             self.doc_embeddings = x
 
+
 class Surah:
     with open(DATA / "surah_names.txt") as f:
         names = [x.strip() for x in f.readlines()]
-    
+
     def __init__(self, name, number):
         self.name = name.split(".")[-1].strip()
         self.number = number
         self.verses = []
-        
+
     def __repr__(self) -> str:
         return self.name
-    
+
     def __eq__(self, __o: object) -> bool:
         return self.name == __o.name
-    
+
 
 class Verse:
     def __init__(self, translation):
@@ -115,12 +117,12 @@ class Verse:
         chapter_number, number, text = translation.strip().split("|")
         self.translation = text
         self.number = int(number)
-        self.chapter_name = Surah.names[int(chapter_number)-1]
+        self.chapter_name = Surah.names[int(chapter_number) - 1]
         self.surah = Surah(self.chapter_name, chapter_number)
 
     def __repr__(self):
         return f"({self.surah.number}:{self.number}) {self.translation}"
-    
+
 
 class Quran:
     def __init__(self, _=None):
@@ -129,7 +131,7 @@ class Quran:
         self.surahs = []
         self.add_surahs()
         self.documents = self.verses
-    
+
     def add_surahs(self):
         current_surah = self.verses[0].surah
 
@@ -139,8 +141,9 @@ class Quran:
                 current_surah = verse.surah
             verse.surah = current_surah
             current_surah.verses.append(verse)
-        
+
         self.surahs.append(current_surah)
+
 
 class Hadith:
     def __init__(self, text):
@@ -148,9 +151,10 @@ class Hadith:
         number, text = text.split("|")
         self.text = text.strip()
         self.number = number
-    
+
     def __repr__(self):
         return self.raw_text
+
 
 class HadithCollection:
     def __init__(self, name):
@@ -159,17 +163,17 @@ class HadithCollection:
             raw_hadiths = f.readlines()
         self.hadiths = [Hadith(x.strip()) for x in raw_hadiths]
         self.documents = self.hadiths
-    
+
     def __repr__(self):
         return self.name
 
 
-
 if __name__ == "__main__":
+
     def chunks(lst, n):
         """Yield successive n-sized chunks from lst."""
         for i in range(0, len(lst), n):
-            yield lst[i:i + n]
+            yield lst[i : i + n]
 
     corpus = SearchEngine("bukhari")
 

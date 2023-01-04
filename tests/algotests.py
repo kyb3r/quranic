@@ -7,14 +7,13 @@ c.load_embeddings("quran-embeddings")
 # c.save_embeddings("quran-embeddings")
 
 
-c.documents = Quran().verses # HadithCollection("bukhari").hadiths
+c.documents = Quran().verses  # HadithCollection("bukhari").hadiths
 
 print(type(c.doc_embeddings))
 
+
 def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
- 
-
 
 
 def np_compute_sim(a, b):
@@ -35,6 +34,7 @@ def sim_matrix(a, b, eps=1e-8):
     sim_mt = torch.mm(a_norm, b_norm.transpose(0, 1))
     return sim_mt
 
+
 import time
 
 start = time.time()
@@ -52,7 +52,7 @@ s1 = sorted(zipped, key=lambda x: x[0], reverse=True)[:3]
 print(s1)
 
 
-print(time.time()-start)
+print(time.time() - start)
 
 
 start = time.time()
@@ -63,7 +63,7 @@ zipped = list(zip(result.tolist(), c.documents))
 s2 = sorted(zipped, key=lambda x: x[0], reverse=True)[:3]
 print(s2)
 
-print(time.time()-start)
+print(time.time() - start)
 
 
 print(all([x[1] == y[1] for x, y in zip(s1, s2)]))
