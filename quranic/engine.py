@@ -13,6 +13,9 @@ class SemanticSearch:
     ----------
     model : str
         The model to use for semantic search.
+    device : str
+        The device to use for inference.
+        (cpu or cuda:0)
 
     Examples
     --------
