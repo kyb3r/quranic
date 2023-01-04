@@ -119,9 +119,7 @@ class CocoSearch:
 
     def encode(self, texts, is_query=False):
         with torch.no_grad():
-            inputs = self.tokenizer(
-                texts, padding=True, truncation=True, return_tensors="pt"
-            ).to(self.model.device)
+            inputs = self.tokenizer(texts, padding=True, truncation=True, return_tensors="pt").to(self.model.device)
             embeddings = (
                 self.model(**inputs, output_hidden_states=True, return_dict=True)
                 .hidden_states[-1][:, :1]

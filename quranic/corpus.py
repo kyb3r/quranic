@@ -15,6 +15,14 @@ def cosine_similarity(a, b):
 class SearchEngine:
     """This class is used to store a corpus of documents and perform semantic search on it."""
 
+    _singleton_model = None
+
+    @classmethod
+    def load_model(cls, name):
+        if cls._singleton_model is None:
+            cls._singleton_model = SemanticSearch(name)
+        return cls._singleton_model
+
     def __init__(self, name: str):
         books = {
             "quran": Quran,
@@ -28,7 +36,7 @@ class SearchEngine:
         self.load_search_engine()
 
     def load_search_engine(self, name="sgpt-small"):
-        self.model = SemanticSearch(name)
+        self.model = SearchEngine.load_model(name)
         self.load_embeddings(DATA / f"{self.name}-embeddings")
         return self
 

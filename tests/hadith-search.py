@@ -3,13 +3,14 @@ import time
 
 
 corpus = SearchEngine("bukhari")
+quran = SearchEngine("quran")
 
 queries = ["adultery"]
 
 for query in queries:
     print("QUERY:", query)
     print()
-    results = corpus.search(query, k=10)
+    results = quran.search(query, k=10)
     for socre, hadith in results:
         print(hadith)
         print()
