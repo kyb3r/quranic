@@ -9,7 +9,7 @@ from quranic.corpus import SearchEngine
 
 quran = SearchEngine("quran")
 
-scores, verses = quran.search("deaf dumb and blind", k=5)
+scores, verses = quran.search(query, k=5)
 for verse in verses:
     print(f"Surah {verse.surah.name}\n  {verse}\n")
 ```
