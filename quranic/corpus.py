@@ -1,4 +1,4 @@
-from .engine import SemanticSearch, CocoSearch
+from quranic.engine import SemanticSearch, CocoSearch, Instructor
 import numpy as np
 import torch
 import pickle
@@ -20,24 +20,30 @@ class SearchEngine:
     @classmethod
     def load_model(cls, name):
         if cls._singleton_model is None:
-            cls._singleton_model = SemanticSearch(name)
+            if name.startswith("sgpt"):
+                cls._singleton_model = SemanticSearch(name)
+            else:
+                cls._singleton_model = Instructor()
         return cls._singleton_model
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, generate=False):
         books = {
             "quran": Quran,
             "bukhari": HadithCollection,
+            "muslim": HadithCollection,
         }
 
         self.name = name
         self.book = books[name](name)
         self.documents = self.book.documents
         self.doc_embeddings: list = []
+        self.generate = generate
         self.load_search_engine()
 
-    def load_search_engine(self, name="sgpt-small"):
+    def load_search_engine(self, name="instruct"):
         self.model = SearchEngine.load_model(name)
-        self.load_embeddings(DATA / f"{self.name}-embeddings")
+        if not self.generate:
+            self.load_embeddings(DATA/ f"{self.name}-instruct")
         return self
 
     @staticmethod
@@ -55,7 +61,13 @@ class SearchEngine:
     def search(self, query: str, k: int = 5):
         """Search the corpus for the given query and return the top k results."""
 
-        query_embedding = self.model.encode([query], is_query=True).cpu()
+        if isinstance(self.model, Instructor):
+            inst = f"Represent the search query for retrieving documents from {self.name.capitalize()}: "
+            query = [inst, query]
+            query_embedding = torch.tensor(self.model.encode([query]))
+        else:
+            query_embedding = self.model.encode([query], is_query=True).cpu()
+
         similarities = self.sim_matrix(self.doc_embeddings, query_embedding)
         zipped = list(zip(similarities.tolist(), self.documents))
 
@@ -90,7 +102,11 @@ class SearchEngine:
         """Save precomputed embeddings to a file."""
 
         if isinstance(self.doc_embeddings, list):
-            self.doc_embeddings = torch.stack([t.cpu() for t in self.doc_embeddings])
+            if isinstance(self.doc_embeddings[0], np.ndarray):
+                self.doc_embeddings = torch.tensor(self.doc_embeddings)
+                print(self.doc_embeddings.shape)
+            else:
+                self.doc_embeddings = torch.stack([t.cpu() for t in self.doc_embeddings])
             print("Converted to torch tensor")
 
         with open(path, "wb") as f:
@@ -183,17 +199,30 @@ if __name__ == "__main__":
         for i in range(0, len(lst), n):
             yield lst[i : i + n]
 
-    corpus = SearchEngine("bukhari")
+    
 
     from tqdm import tqdm
 
-    with tqdm(total=len(documents)) as bar:
-        for chunk in all_chunks:
-            bar.set_description(f"{chunk[0].number}")
-            corpus.batch_add_documents([str(v)[:2000] for v in chunk])
-            bar.update(len(chunk))
+    def generate_embeddings(book_name):
+        corpus = SearchEngine(book_name, generate=True)
+        print(f"Generating Embeddings for {book_name}")
+        all_chunks = chunks(corpus.book.documents, 1000)
+
+        with tqdm(total=len(corpus.book.documents)) as bar:
+            for chunk in all_chunks:
+                bar.set_description(f"{chunk[0].number}")
+                instructions = []
+                for verse in chunk:
+                    inst = f"Represent the {corpus.name.capitalize()} document for retrieval: "
+                    instructions.append([inst, str(verse)])
+                corpus.batch_add_documents(instructions)
+                bar.update(len(chunk))
 
     # save embeddings to file:
-    corpus.save_embeddings("bukhari-embeddings")
-    results = corpus.search("deaf dumb and blind")
-    print(results)
+        corpus.save_embeddings(DATA/f"{corpus.name}-instruct")
+        results = corpus.search("deaf dumb and blind")
+        print(results)
+    
+    for book in ["quran", "bukhari", "muslim"]:
+        generate_embeddings(book)
+

@@ -2,7 +2,10 @@ from quranic.corpus import SearchEngine
 
 print("Loading model...")
 corpus = SearchEngine("quran")
+
+print(len(corpus.doc_embeddings))
 print("Model loaded")
+
 
 queries = [
     "its not the eyes that are blind, but the hearts",
@@ -30,7 +33,7 @@ print(time.time() - start)
 
 while True:
     query = input("QUERY: ")
-    results = corpus.search(query)
+    results = corpus.search(query, k=10)
 
     for _, verse in results:
         print(f"Surah {verse.surah.name}\n  {verse}")

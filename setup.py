@@ -11,7 +11,7 @@ def get_long_description() -> str:
         return ld_file.read()
 
 
-install_requires = ["transformers==4.25.1", "torch==1.13.1", "numpy==1.24.1"]
+install_requires = ["transformers==4.25.1", "torch==1.13.1", "numpy==1.24.1", "sentence_transformers"]
 
 setup(
     name="quranic",

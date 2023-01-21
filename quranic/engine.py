@@ -2,6 +2,8 @@ import torch
 from transformers import AutoModel, AutoTokenizer
 from transformers import logging
 
+from InstructorEmbedding import INSTRUCTOR
+
 logging.set_verbosity_error()
 
 
@@ -126,3 +128,17 @@ class CocoSearch:
                 .squeeze(1)
             )
         return embeddings.to("cpu")
+
+class Instructor:
+    def __init__(self, device="cuda:0"):
+        self.model = INSTRUCTOR('hkunlp/instructor-large')
+
+    def encode(self, texts, is_query=False):
+        return self.model.encode(texts)
+        
+
+
+if __name__ == "__main__":
+    model = Instructor()
+
+
