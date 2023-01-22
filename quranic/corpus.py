@@ -43,7 +43,7 @@ class SearchEngine:
     def load_search_engine(self, name="instruct"):
         self.model = SearchEngine.load_model(name)
         if not self.generate:
-            self.load_embeddings(DATA/ f"{self.name}-instruct")
+            self.load_embeddings(DATA / f"{self.name}-instruct")
         return self
 
     @staticmethod
@@ -106,7 +106,9 @@ class SearchEngine:
                 self.doc_embeddings = torch.tensor(self.doc_embeddings)
                 print(self.doc_embeddings.shape)
             else:
-                self.doc_embeddings = torch.stack([t.cpu() for t in self.doc_embeddings])
+                self.doc_embeddings = torch.stack(
+                    [t.cpu() for t in self.doc_embeddings]
+                )
             print("Converted to torch tensor")
 
         with open(path, "wb") as f:
@@ -199,11 +201,17 @@ if __name__ == "__main__":
         for i in range(0, len(lst), n):
             yield lst[i : i + n]
 
-    
-
     from tqdm import tqdm
 
     def generate_embeddings(book_name):
+        """
+        Generate embeddings for the given book and save them to a file.
+
+        Parameters
+        ----------
+        book_name : str
+            The name of the book to generate embeddings for.
+        """
         corpus = SearchEngine(book_name, generate=True)
         print(f"Generating Embeddings for {book_name}")
         all_chunks = chunks(corpus.book.documents, 1000)
@@ -218,11 +226,10 @@ if __name__ == "__main__":
                 corpus.batch_add_documents(instructions)
                 bar.update(len(chunk))
 
-    # save embeddings to file:
-        corpus.save_embeddings(DATA/f"{corpus.name}-instruct")
+        # save embeddings to file:
+        corpus.save_embeddings(DATA / f"{corpus.name}-instruct")
         results = corpus.search("deaf dumb and blind")
         print(results)
-    
+
     for book in ["quran", "bukhari", "muslim"]:
         generate_embeddings(book)
-

@@ -121,7 +121,9 @@ class CocoSearch:
 
     def encode(self, texts, is_query=False):
         with torch.no_grad():
-            inputs = self.tokenizer(texts, padding=True, truncation=True, return_tensors="pt").to(self.model.device)
+            inputs = self.tokenizer(
+                texts, padding=True, truncation=True, return_tensors="pt"
+            ).to(self.model.device)
             embeddings = (
                 self.model(**inputs, output_hidden_states=True, return_dict=True)
                 .hidden_states[-1][:, :1]
@@ -129,16 +131,14 @@ class CocoSearch:
             )
         return embeddings.to("cpu")
 
+
 class Instructor:
     def __init__(self, device="cuda:0"):
-        self.model = INSTRUCTOR('hkunlp/instructor-large')
+        self.model = INSTRUCTOR("hkunlp/instructor-large")
 
     def encode(self, texts, is_query=False):
         return self.model.encode(texts)
-        
 
 
 if __name__ == "__main__":
     model = Instructor()
-
-
